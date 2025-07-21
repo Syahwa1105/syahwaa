@@ -1,0 +1,370 @@
+Baik, saya mengerti tiga fitur tambahan yang perlu diimplementasikan: **Penghapusan Akun Menyeluruh**, **Membalas Confession (oleh Cosmic)**, dan **Melihat Balasan Confession (oleh Pengirim)**. Saya akan memberikan panduan langkah demi langkah dan potongan kode untuk membantu Anda mengimplementasikan fitur-fitur ini.
+
+-----
+
+## 1\. Menghapus Akun Secara Menyeluruh dari Sistem
+
+Fitur ini membutuhkan penanganan yang cermat karena melibatkan penghapusan data dari berbagai daftar dan relasi.
+
+### Modifikasi Kelas yang Diperlukan:
+
+#### a. `TP4.java` (Logika Utama)
+
+Di dalam `TP4.java`, Anda akan menambahkan metode baru untuk mengelola penghapusan akun. Ini akan menjadi fitur yang diakses oleh `Admin`.
+
+**Tambahkan ke menu Admin (di `displayAdminMenu` atau sejenisnya):**
+
+```java
+// TP4.java
+// ...
+case 5: // Misalkan ini adalah pilihan "Hapus Akun"
+    System.out.print("Masukkan akun yang ingin dihapus: ");
+    String usernameToDelete = scanner.nextLine(); // Gunakan scanner yang sudah ada
+    User userToDelete = findUserByUsername(usernameToDelete); // Metode helper untuk mencari user
+    if (userToDelete != null) {
+        deleteAccount(userToDelete);
+        System.out.println("Akun berhasil terhapus");
+    } else {
+        System.out.println("Akun tidak ditemukan.");
+    }
+    break;
+// ...
+```
+
+**Tambahkan metode `deleteAccount(User userToDelete)` di `TP4.java`:**
+Ini adalah metode inti yang akan melakukan semua penghapusan.
+
+```java
+// TP4.java
+// ...
+// Asumsikan daftarUser dan daftarMenfess adalah static List di TP4
+public static List<User> daftarUser = new ArrayList<>();
+public static List<Menfess> daftarMenfess = new ArrayList<>();
+// ...
+
+public static void deleteAccount(User userToDelete) {
+    // 1. Hapus dari daftar followers dan following semua pengguna lain
+    for (User user : daftarUser) {
+        user.removeFollower(userToDelete); // Hapus dari daftar follower jika userToDelete adalah follower
+        user.removeFollowing(userToDelete); // Hapus dari daftar following jika userToDelete diikuti
+    }
+
+    // 2. Hapus semua menfess yang dikirim oleh userToDelete
+    // Gunakan iterator untuk menghindari ConcurrentModificationException
+    daftarMenfess.removeIf(menfess -> menfess.getUser().equals(userToDelete));
+
+    // 3. Hapus semua menfess BALASAN yang terkait dengan userToDelete
+    // (Jika Anda membuat kelas/struktur data untuk balasan)
+    // Ini akan dibahas lebih lanjut di fitur 2 & 3. Untuk saat ini, asumsikan ada
+    // cara untuk menghapus balasan terkait menfess yang dihapus.
+    // Misal: Jika balasan disimpan di Menfess itu sendiri atau di User.
+    // Jika balasan adalah objek terpisah, Anda perlu list balasan global juga.
+
+    // 4. Hapus userToDelete dari daftar followers dan following mereka sendiri (jika perlu)
+    // Sebenarnya ini sudah akan dihapus saat userToDelete itu sendiri dihapus dari daftarUser.
+
+    // 5. Hapus userToDelete dari daftarUser global
+    daftarUser.remove(userToDelete);
+
+    // Opsional: Jika Anda memiliki global currentUser, pastikan tidak menunjuk ke user yang dihapus
+    if (currentUser != null && currentUser.equals(userToDelete)) {
+        currentUser = null;
+        System.out.println("Akun Anda telah dihapus. Anda telah logout.");
+    }
+}
+
+// Metode helper untuk mencari user (jika belum ada)
+public static User findUserByUsername(String username) {
+    for (User user : daftarUser) {
+        if (user.getUsername().equalsIgnoreCase(username)) {
+            return user;
+        }
+    }
+    return null;
+}
+// ...
+```
+
+-----
+
+## 2\. Membalas Confession (oleh Cosmic)
+
+Fitur ini memungkinkan `Cosmic` membalas `Confession` yang ditujukan kepadanya, menjaga anonimitas pengirim. Ini memerlukan struktur data baru untuk menyimpan balasan.
+
+### Modifikasi Kelas yang Diperlukan:
+
+#### a. Buat Kelas Baru: `ConfessionReply.java`
+
+Kelas ini akan merepresentasikan sebuah balasan terhadap confession.
+
+```java
+// ConfessionReply.java
+import java.time.LocalDateTime;
+
+public class ConfessionReply {
+    private String replyId;
+    private Menfess originalConfession; // Referensi ke confession yang dibalas
+    private User replier; // Siapa yang membalas (Cosmic)
+    private String replyMessage;
+    private LocalDateTime replyTime;
+
+    public ConfessionReply(String replyId, Menfess originalConfession, User replier, String replyMessage) {
+        this.replyId = replyId;
+        this.originalConfession = originalConfession;
+        this.replier = replier;
+        this.replyMessage = replyMessage;
+        this.replyTime = LocalDateTime.now();
+    }
+
+    // Getters
+    public String getReplyId() {
+        return replyId;
+    }
+
+    public Menfess getOriginalConfession() {
+        return originalConfession;
+    }
+
+    public User getReplier() {
+        return replier;
+    }
+
+    public String getReplyMessage() {
+        return replyMessage;
+    }
+
+    public LocalDateTime getReplyTime() {
+        return replyTime;
+    }
+
+    @Override
+    public String toString() {
+        // Format untuk ditampilkan di pengirim
+        return "[Balasan untuk Confession: \"" + originalConfession.getPesan() + "\"]\n" +
+               "oleh " + replier.getRole() + " (" + replier.getUsername() + "): \"" + replyMessage + "\"\n" +
+               "Waktu balas: " + replyTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+    }
+}
+```
+
+#### b. Modifikasi `Menfess.java` (opsional, tergantung implementasi)
+
+Anda bisa menambahkan daftar balasan ke dalam `Menfess` jika setiap menfess menyimpan balasannya sendiri. Atau, Anda bisa memiliki daftar balasan global di `TP4`.
+
+**Saran**: Untuk `ConfessionReply`, lebih baik memiliki daftar global di `TP4` (atau `MenfessManager` jika ada) karena balasan sebenarnya "terhubung" dengan pengirim asli, bukan hanya dengan objek `Menfess` itu sendiri.
+
+#### c. `User.java` (untuk melacak balasan yang diterima)
+
+Pengirim perlu melihat balasan, jadi `User` pengirim harus melacak balasan yang ditujukan kepadanya.
+
+**Tambahkan ke `User.java`:**
+
+```java
+// User.java
+// ...
+private List<ConfessionReply> receivedReplies;
+
+public User(int id, String username, String password, String role) {
+    // ... konstruktor yang sudah ada ...
+    this.receivedReplies = new ArrayList<>();
+}
+
+public List<ConfessionReply> getReceivedReplies() {
+    return receivedReplies;
+}
+
+public void addReceivedReply(ConfessionReply reply) {
+    this.receivedReplies.add(reply);
+}
+// ...
+```
+
+#### d. `TP4.java` (Logika Utama dan Manajemen Balasan)
+
+`TP4` akan bertanggung jawab untuk menampilkan confession ke Cosmic, memungkinkan balasan, dan menyimpan balasan tersebut.
+
+**Tambahkan ke menu `Cosmic` (di `displayCosmicMenu` atau sejenisnya):**
+
+  * Ubah opsi "Melihat daftar Menfess" agar ada sub-menu "Menfess Balasan Buat Kamu".
+  * Tambahkan logika untuk memproses balasan.
+
+<!-- end list -->
+
+```java
+// TP4.java
+// ...
+// Asumsikan daftarReplies adalah static List di TP4 untuk semua balasan
+public static List<ConfessionReply> daftarReplies = new ArrayList<>();
+
+// Di dalam metode Cosmic menu (misal: displayCosmicMenu)
+// ...
+case 4: // Melihat daftar Menfess
+    System.out.println("Pilih salah satu daftar menfess!");
+    System.out.println("1. Semua Menfess");
+    System.out.println("2. Menfess Buat Kamu"); // Ini untuk Confession yang diterima Cosmic
+    System.out.println("3. Menfess Balasan Buat Kamu"); // Ini untuk pengirim melihat balasannya
+    System.out.print("Masukkan pilihanmu: ");
+    int menfessChoice = scanner.nextInt();
+    scanner.nextLine(); // Consume newline
+
+    switch (menfessChoice) {
+        case 1:
+            // Logika untuk menampilkan semua menfess (sudah ada)
+            tampilkanSemuaMenfess();
+            break;
+        case 2:
+            // Logika baru untuk menampilkan confession ke Cosmic dan membalasnya
+            handleConfessionForCosmic(currentUser); // currentUser adalah Cosmic yang sedang login
+            break;
+        case 3:
+            // Logika untuk pengirim melihat balasan (akan dibahas di Fitur 3)
+            if (currentUser.getRole().equals("User")) { // Hanya User biasa yang bisa melihat balasan ke confession mereka
+                tampilkanBalasanConfession(currentUser);
+            } else {
+                System.out.println("Fitur ini hanya untuk pengguna biasa (User).");
+            }
+            break;
+        default:
+            System.out.println("Pilihan tidak valid.");
+    }
+    break;
+// ...
+
+// Metode baru untuk handleConfessionForCosmic
+public static void handleConfessionForCosmic(User cosmicUser) {
+    System.out.println("== Semua Menfess Confession Untuk Kamu ==");
+    List<Menfess> confessionsForCosmic = new ArrayList<>();
+    int index = 1;
+    for (Menfess menfess : daftarMenfess) {
+        // Asumsi ConfessFess memiliki method getPenerima()
+        if (menfess instanceof ConfessFess && ((ConfessFess) menfess).getPenerima().equalsIgnoreCase(cosmicUser.getUsername()) && !menfess.isHidden()) {
+            System.out.println("[" + index + "][Confession] oleh anonim: \"" + menfess.getPesan() + "\"");
+            System.out.println("Waktu kirim: " + menfess.getWaktu().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+            confessionsForCosmic.add(menfess); // Simpan referensi menfess yang ditampilkan
+            index++;
+        }
+    }
+
+    if (confessionsForCosmic.isEmpty()) {
+        System.out.println("Tidak ada confession untukmu.");
+        return;
+    }
+
+    System.out.print("Pilih nomor confession yang ingin dibalas: ");
+    int choice = scanner.nextInt();
+    scanner.nextLine(); // Consume newline
+
+    if (choice > 0 && choice <= confessionsForCosmic.size()) {
+        Menfess selectedConfession = confessionsForCosmic.get(choice - 1);
+        System.out.print("Tulis balasan kamu: ");
+        String replyMessage = scanner.nextLine();
+
+        // Buat ID balasan yang unik (contoh sederhana)
+        String replyId = "REPLY" + (daftarReplies.size() + 1);
+
+        // Buat objek balasan
+        ConfessionReply newReply = new ConfessionReply(replyId, selectedConfession, cosmicUser, replyMessage);
+        daftarReplies.add(newReply); // Simpan balasan secara global
+
+        // Tambahkan balasan ke daftar receivedReplies pengirim asli
+        // Kita perlu mencari pengirim asli dari selectedConfession
+        User originalSender = selectedConfession.getUser(); // Mendapatkan User pengirim dari Menfess
+        originalSender.addReceivedReply(newReply); // Tambahkan balasan ke daftar pengirim
+
+        System.out.println("Balasan berhasil dikirim ke pengirim.");
+    } else {
+        System.out.println("Pilihan tidak valid.");
+    }
+}
+// ...
+```
+
+-----
+
+## 3\. Melihat Balasan Confession (oleh Pengirim)
+
+Fitur ini akan diakses oleh pengguna biasa (`User`) untuk melihat balasan yang diterima untuk confession yang mereka kirim.
+
+### Modifikasi Kelas yang Diperlukan:
+
+#### a. `TP4.java` (Logika Utama)
+
+**Tambahkan ke menu `User` biasa (di `displayUserMenu` atau sejenisnya):**
+
+  * Ubah opsi "Melihat daftar Menfess" agar ada sub-menu "Menfess Balasan Buat Kamu".
+
+<!-- end list -->
+
+```java
+// TP4.java
+// ...
+// Di dalam metode User menu (misal: displayUserMenu)
+// ...
+case 4: // Melihat daftar Menfess
+    System.out.println("Pilih salah satu daftar menfess!");
+    System.out.println("1. Semua Menfess");
+    System.out.println("2. Menfess Buat Kamu"); // Confession yang ditujukan ke user
+    System.out.println("3. Menfess Balasan Buat Kamu"); // Balasan confession yang dikirim user
+    System.out.print("Masukkan pilihanmu: ");
+    int menfessChoice = scanner.nextInt();
+    scanner.nextLine(); // Consume newline
+
+    switch (menfessChoice) {
+        case 1:
+            // Logika untuk menampilkan semua menfess (sudah ada)
+            tampilkanSemuaMenfess();
+            break;
+        case 2:
+            // Logika untuk menampilkan menfess yang ditujukan ke user (Confession ke User lain)
+            // (Jika ConfessFess.penerima bisa berupa User biasa, bukan hanya Cosmic)
+            // Jika hanya Cosmic yang bisa jadi penerima, opsi ini tidak relevan untuk "User"
+            System.out.println("Fitur ini hanya untuk Cosmic atau Confession yang ditujukan kepada Anda.");
+            break;
+        case 3:
+            // Logika baru untuk pengirim melihat balasan
+            tampilkanBalasanConfession(currentUser); // currentUser adalah pengirim yang sedang login
+            break;
+        default:
+            System.out.println("Pilihan tidak valid.");
+    }
+    break;
+// ...
+
+// Metode baru untuk tampilkanBalasanConfession
+public static void tampilkanBalasanConfession(User senderUser) {
+    System.out.println("== Semua Balasan Confession Buat Kamu ==");
+    List<ConfessionReply> replies = senderUser.getReceivedReplies();
+
+    if (replies.isEmpty()) {
+        System.out.println("Belum ada balasan confession untukmu.");
+        return;
+    }
+
+    // Urutkan balasan berdasarkan waktu balas (opsional, tapi disarankan)
+    Collections.sort(replies, Comparator.comparing(ConfessionReply::getReplyTime));
+
+    for (ConfessionReply reply : replies) {
+        System.out.println(reply.toString()); // Menggunakan toString() dari ConfessionReply
+        System.out.println(); // Baris kosong untuk pemisah
+    }
+}
+// ...
+```
+
+-----
+
+### Ringkasan Penambahan/Modifikasi:
+
+1.  **Kelas Baru**: `ConfessionReply.java` untuk menyimpan detail balasan.
+2.  **Modifikasi `User.java`**: Tambahkan `List<ConfessionReply> receivedReplies` dan metode `addReceivedReply()`.
+3.  **Modifikasi `TP4.java`**:
+      * Tambahkan `List<ConfessionReply> daftarReplies` global.
+      * Perbarui `displayAdminMenu` dengan opsi "Hapus Akun" dan metode `deleteAccount()`.
+      * Perbarui `displayCosmicMenu` dan `displayUserMenu` (di bagian "Melihat daftar Menfess") dengan opsi "Menfess Balasan Buat Kamu" dan panggil metode `handleConfessionForCosmic()` serta `tampilkanBalasanConfession()`.
+      * Implementasikan `handleConfessionForCosmic()` untuk menampilkan confession yang ditujukan kepada Cosmic dan memungkinkan mereka membalas.
+      * Implementasikan `tampilkanBalasanConfession()` untuk menampilkan balasan kepada pengirim asli.
+      * Pastikan `deleteAccount()` menghapus akun dari semua daftar terkait (`daftarUser`, *followers*, *following*, `menfessList`, dan juga `daftarReplies` jika ada balasan yang terkait dengan user atau menfess yang dihapus).
+
+Pastikan untuk menambahkan validasi input yang kuat di mana pun Anda membaca dari `Scanner` (misalnya, untuk nomor pilihan, indeks menfess, dll.) untuk menghindari `InputMismatchException` atau error lainnya.
+
+Semoga ini membantu Anda melanjutkan proyeknya\! Jika ada pertanyaan lebih lanjut atau Anda ingin saya membantu dengan bagian spesifik lainnya, jangan ragu untuk bertanya.
