@@ -1,0 +1,289 @@
+import java.util.ArrayList;
+import java.util.Scanner;
+import java.util.HashMap;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Map;
+
+
+/**
+ * Simulates a game of Crazy Eights.
+ * See https://en.wikipedia.org/wiki/Crazy_Eights.
+ */
+public class Eights {
+
+    private static ArrayList<Player> players = new ArrayList<Player>();
+    private static ArrayList<Integer> scores = new ArrayList<Integer>();
+
+    // Tambahkan ini untuk highscore
+    private static final String HIGHSCORE_FILENAME = "highscores-eight.txt";
+    private static HashMap<String, Integer> highscores = new HashMap<>();
+
+    private Hand drawPile;
+    private Hand discardPile;
+    private Scanner in;
+
+    /**
+     * Initializes the state of the game.
+     */
+    public Eights() {
+        Deck deck = new Deck("Deck");
+        deck.shuffle();
+
+        for (Player player : players) {
+            player.setHand(new Hand(player.getName()));
+            deck.deal(player.getHand(), 5);
+        }
+
+        // turn one card face up
+        discardPile = new Hand("Discards");
+        deck.deal(discardPile, 1);
+
+        // create the draw pile
+        drawPile = new Hand("Draw Pile");
+        deck.dealAll(drawPile);
+
+        // create the scanner for user input
+        in = new Scanner(System.in);
+    }
+
+    /**
+     * Plays one hand of Crazy Eights.
+     */
+    public void playGame() {
+        Player player = players.get(0);
+        Card prev = discardPile.lastCard();
+
+        // loop until a player runs out of cards
+        while (true) {
+            System.out.println("Kartu yang ada di tumpukkan: " + prev);
+            System.out.println("");
+
+            // display and play
+            for (Player p : players) {
+                p.display();
+            }
+            System.out.println("");
+
+            Card card = player.play(this, prev);
+            // If the player drew a card, display it.
+            if (card != null) {
+                System.out.println(player.getName() + " memainkan " + card);
+                discardPile.addCard(card);
+                prev = card;
+            } else {
+                System.out.println(player.getName() + " tidak memiliki kartu yang cocok.");
+            }
+
+            // if the hand is empty, the game is over
+            if (player.getHand().isEmpty()) {
+                System.out.println(player.getName() + " menang!");
+                break;
+            }
+
+            // advance to the next player
+            int nextPlayerIndex = (players.indexOf(player) + 1) % players.size();
+            player = players.get(nextPlayerIndex);
+        }
+    }
+
+    /**
+     * Deals a card from the draw pile.
+     */
+    public Card drawCard() {
+        if (drawPile.isEmpty()) {
+            reshuffle();
+        }
+        return drawPile.popCard();
+    }
+
+    /**
+     * Moves cards from the discard pile to the draw pile and shuffles.
+     */
+    public void reshuffle() {
+        Card prev = discardPile.popCard();
+        discardPile.dealAll(drawPile);
+        drawPile.shuffle();
+        discardPile.addCard(prev);
+    }
+
+    /**
+     * Returns the number of cards in the draw pile.
+     */
+    public int getDrawPileSize() {
+        return drawPile.size();
+    }
+
+    /**
+     * Gets the user's choice for the suit of an eight.
+     */
+    public String getUserSuit() {
+        System.out.print("Masukkan suit yang diinginkan: ");
+        String s = in.nextLine();
+        return s;
+    }
+
+    // --- Metode Highscore ---
+
+    /**
+     * Reads high scores from the file into the HashMap.
+     * Should be called at the start of the game.
+     */
+    public static void loadHighscores() {
+        try (BufferedReader reader = new BufferedReader(new FileReader(HIGHSCORE_FILENAME))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(" ");
+                if (parts.length == 2) {
+                    String name = parts[0];
+                    try {
+                        int score = Integer.parseInt(parts[1]);
+                        highscores.put(name, score);
+                    } catch (NumberFormatException e) {
+                        System.err.println("Skipping malformed score entry: " + line);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            // File might not exist yet, which is fine for the first run
+            System.out.println("Highscores file not found or error reading. Starting with empty highscores.");
+        }
+    }
+
+    /**
+     * Updates the score for a given player. If the player is new, they are added.
+     *
+     * @param playerName The name of the player whose score needs to be updated.
+     */
+    public static void updateHighscore(String playerName) {
+        highscores.put(playerName, highscores.getOrDefault(playerName, 0) + 1);
+    }
+
+    /**
+     * Writes the current high scores from the HashMap back to the file.
+     * Should be called at the end of the game.
+     */
+    public static void saveHighscores() {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(HIGHSCORE_FILENAME))) {
+            for (Map.Entry<String, Integer> entry : highscores.entrySet()) {
+                writer.write(entry.getKey() + " " + entry.getValue());
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            System.err.println("Error saving highscores: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Prints the current high scores to the console.
+     * For debugging or displaying at the end.
+     */
+    public static void displayHighscores() {
+        System.out.println("\n--- Current Highscores ---");
+        if (highscores.isEmpty()) {
+            System.out.println("No highscores yet.");
+        } else {
+            // Urutkan untuk tampilan yang lebih baik (opsional, tapi bagus)
+            highscores.entrySet()
+                      .stream()
+                      .sorted(Map.Entry.<String, Integer>comparingByValue().reversed()) // Urutkan dari skor tertinggi
+                      .forEach(entry -> System.out.println(entry.getKey() + " " + entry.getValue()));
+        }
+        System.out.println("--------------------------");
+    }
+
+    // --- Main Method ---
+
+    public static void main(String[] args) {
+        // Panggil ini di awal main untuk memuat highscore
+        loadHighscores();
+
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("Masukkan banyak player");
+        int jumlahPlayer = scanner.nextInt();
+        scanner.nextLine(); // consume newline
+
+        for(int i=1;i<=jumlahPlayer;i++) {
+            scores.add(0); // Inisialisasi skor total
+
+            System.out.println(i+". Masukkan jenis: Human or AI?");
+            String jenisPlayer = scanner.nextLine();
+
+            Player newPlayer = null;
+
+            if(jenisPlayer.equalsIgnoreCase("human")) {
+                System.out.println("Masukkan nama player " + (i));
+                String nama = scanner.nextLine();
+                newPlayer = new HumanPlayer(nama);
+            } else if(jenisPlayer.equalsIgnoreCase("ai")) {
+                System.out.println("Last or Advanced?");
+                String jenisAI = scanner.nextLine();
+
+                if(jenisAI.equalsIgnoreCase("advanced")) {
+                    newPlayer = new AIPlayerAdvanced("BOT "+(i)+" ADVANCED");
+                }
+                else if(jenisAI.equalsIgnoreCase("last")) {
+                    newPlayer = new AIPlayerLast("BOT "+(i)+" LAST");
+                }
+            } else {
+                 System.out.println("Jenis player tidak valid. Default ke Human.");
+                 System.out.println("Masukkan nama player " + (i));
+                 String nama = scanner.nextLine();
+                 newPlayer = new HumanPlayer(nama);
+            }
+            players.add(newPlayer);
+        }
+
+        System.out.println("Main berapa kali?");
+        int jumlahMain = scanner.nextInt();
+
+        for(int i=1;i<=jumlahMain;i++) {
+            System.out.println("Main ke-" + i);
+            Eights game = new Eights(); // Buat instance game baru untuk setiap putaran
+            game.playGame();
+
+            // Kumpulkan skor akhir dari game ini untuk skor total
+            for(int j=0;j<players.size();j++) {
+                scores.set(j, scores.get(j) + game.players.get(j).score());
+            }
+
+            // --- Logika untuk menentukan pemenang dan memperbarui highscore per game ---
+            // Pemenang dalam satu putaran adalah pemain yang kartunya habis duluan (skor = 0)
+            String winnerName = null;
+            for (int j = 0; j < game.players.size(); j++) {
+                Player p = game.players.get(j);
+                if (p.getHand().isEmpty()) { // Pemenang adalah yang tangannya kosong
+                    winnerName = p.getName();
+                    break; // Cukup satu pemenang per putaran
+                }
+            }
+
+            if (winnerName != null) {
+                updateHighscore(winnerName); // Panggil metode updateHighscore
+                System.out.println(winnerName + " memenangkan game ini!");
+            } else {
+                // Ini seharusnya tidak terjadi jika playGame() selalu menemukan pemenang.
+                // Jika terjadi stuck loop tanpa pemenang, mungkin perlu logika lain
+                // untuk menentukan pemenang berdasarkan skor terendah di akhir putaran.
+                // Untuk Crazy Eights, yang tangannya habis duluan itu pemenangnya.
+                System.out.println("Tidak ada pemenang yang teridentifikasi untuk putaran ini.");
+            }
+            // -------------------------------------------------------------------------
+
+            System.out.println("~~~~~~~~~~~GAME "+ i + " SELESAI~~~~~~~~~~~\n\n\n");
+        }
+
+        System.out.println("Skor Akhir Total dari Semua Game:");
+        for(int i=0;i<players.size();i++) {
+            System.out.println(players.get(i).getName() + ": " + scores.get(i));
+        }
+
+        saveHighscores();    // Panggil ini untuk menyimpan highscore terakhir
+        displayHighscores(); // Panggil ini untuk menampilkan highscore terakhir
+        scanner.close(); // Tutup scanner saat selesai
+    }
+}
