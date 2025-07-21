@@ -1,0 +1,11 @@
+Tuliskan essay kurang dari 200 kata.
+
+Jawab secara singkat dan padat pertanyaan berikut ini:
+
+Bagaimana Anda mengerjakan TP4? Berapa total waktu (jam) yang Anda alokasikan, bagaimana langkah awal pengerjaan, serta kesulitan apa yang Anda hadapi dan bagaimana cara Anda menyelesaikannya?
+
+Pada TP4, jelaskan bagaimana konsep inheritance diterapkan dalam sistem BurhanFess untuk membedakan antara peran pengguna (Cosmic dan Admin). Mengapa pendekatan ini lebih efektif dibandingkan menggunakan satu class User dengan banyak kondisi if-else?
+
+Pada TP4, Bagaimana kamu menerapkan polymorphism pada sistem tipe fess (Confession, Curhat, Promo)? Jelaskan bagaimana sistem bisa menangani ketiga jenis fess dengan cara yang fleksibel, meskipun berbeda format tampilannya. Gunakan metode displayFess() sebagai contoh.
+
+Essay akan dinilai oleh dosen.
