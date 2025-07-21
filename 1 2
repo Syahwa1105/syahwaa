@@ -1,0 +1,39 @@
+09.1. Membuat berkas highscores
+Buat lah berkas yang mencatat berapa kali seseorang memenangkan permainan ini.
+Berkas tersebut dibaca di awal permainan, kemudian di-update di akhir permainan.
+Berkas diberi nama highscores-eight.txt.
+Berkas berisi misalnya:
+Jim 2
+Allen 3
+Erick 1
+Isi yang tertulis diberkas tak harus terurut. Bila misalnya setelah sebuah permainan,
+Allen menang maka berkas berubah menjadi:
+Jim 2
+Allen 4
+Erick 1
+Bila kemudian pada permainan selanjutnya ada pemain baru bernama Diana
+memenangkan permainan maka berkas menjadi:
+Jim 2
+Allen 4
+Erick 1
+Diana 1
+Untuk membuatnya lebih praktis, anda dapat menggunakan Struktur Data type baru
+misalnya HashMap<String,Integer> untuk menyimpan hasil pembacaan score
+dan kemudian mengupdate dan menyimpan kembali. Silahkan lihat contoh
+BacaTulisKeyValue.java
+Silahkan juga pelajari contoh penggunaan HashMap di w3schools pada URL berikut:
+https://www.w3schools.com/java/java_hashmap.asp
+
+09.2. Custom Exception: ExceptionFormatTidakSesuai
+Ada kondisi mungkin seseorang melakukan editing terhadap berkas yang
+menyimpan high-scores tadi namun editing nya membuat format berkas menjadi
+tidak sesuai. Misalnya berkas menjadi:
+Contoh berkas high-score yang rusak:
+Jim 2
+Allen 4.5
+Erick 1
+Diana 1
+Bila hal ini terjadi maka pembacaan program menjadi error, untuk memberikan
+informasi yang lebih baik, buatlah ExceptionFormatTidakSesuai yang
+merupakan turunan dari Class IOException. Anda bisa melihat contoh berkas
+CircleWithCustomeException.java dan InvalidRadiusException.java.
