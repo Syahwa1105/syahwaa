@@ -1,0 +1,115 @@
+// TP4.java
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Iterator; // Penting untuk menghapus elemen saat looping
+
+// Asumsikan kelas User, Menfess, ConfessFess, ConfessionReply sudah ada dan diimpor dengan benar
+// Contoh: import com.yourpackage.User; import com.yourpackage.Menfess; dst.
+
+public class TP4 {
+
+    // Pastikan daftar-daftar ini adalah static dan dapat diakses
+    public static List<User> daftarUser = new ArrayList<>();
+    public static List<Menfess> daftarMenfess = new ArrayList<>();
+    public static List<ConfessionReply> daftarReplies = new ArrayList<>(); // Baru: untuk menyimpan semua balasan
+    public static User currentUser; // Asumsikan Anda memiliki variabel ini untuk user yang sedang login
+
+    // Asumsikan Anda memiliki Scanner 'scanner' yang sudah diinisialisasi
+    // private static Scanner scanner = new Scanner(System.in);
+
+    // Metode untuk menginisialisasi scanner (penting untuk unit test)
+    public static void setScanner(Scanner newScanner) {
+        // Jika scanner sudah ada, tutup dulu untuk mencegah resource leak
+        if (TP4.scanner != null) {
+            TP4.scanner.close();
+        }
+        TP4.scanner = newScanner;
+    }
+
+    public static Scanner getScanner() {
+        // Anda mungkin ingin menambahkan logika untuk memastikan scanner tidak null
+        if (TP4.scanner == null) {
+            TP4.scanner = new Scanner(System.in);
+        }
+        return TP4.scanner;
+    }
+
+    // --- Bagian Menu Admin (Tambahkan case 5 ini) ---
+    public static void displayAdminMenu() {
+        // ... kode menu admin lainnya ...
+        System.out.println("5. Hapus Akun");
+        // ...
+        System.out.print("Masukkan pilihanmu: ");
+        int choice = getScanner().nextInt();
+        getScanner().nextLine(); // Konsumsi newline
+
+        switch (choice) {
+            // ... case lainnya ...
+            case 5:
+                System.out.print("Masukkan akun yang ingin dihapus: ");
+                String usernameToDelete = getScanner().nextLine();
+                User userToDelete = findUserByUsername(usernameToDelete);
+                if (userToDelete != null) {
+                    deleteAccount(userToDelete);
+                    System.out.println("Akun berhasil terhapus.");
+                } else {
+                    System.out.println("Akun tidak ditemukan.");
+                }
+                break;
+            // ... case lainnya ...
+        }
+    }
+
+    // --- Metode Baru: deleteAccount ---
+    public static void deleteAccount(User userToDelete) {
+        // 1. Hapus userToDelete dari daftar followers dan following semua pengguna lain
+        for (User user : daftarUser) {
+            user.removeFollower(userToDelete);
+            user.removeFollowing(userToDelete);
+        }
+
+        // 2. Hapus semua menfess yang dikirim oleh userToDelete
+        // Gunakan Iterator untuk menghapus elemen dengan aman saat looping
+        Iterator<Menfess> menfessIterator = daftarMenfess.iterator();
+        while (menfessIterator.hasNext()) {
+            Menfess menfess = menfessIterator.next();
+            if (menfess.getUser().equals(userToDelete)) {
+                menfessIterator.remove(); // Hapus menfess ini
+            }
+        }
+
+        // 3. Hapus semua balasan confession yang terkait dengan userToDelete
+        // Ini termasuk balasan yang dikirim userToDelete ATAU balasan yang diterima userToDelete
+        Iterator<ConfessionReply> replyIterator = daftarReplies.iterator();
+        while (replyIterator.hasNext()) {
+            ConfessionReply reply = replyIterator.next();
+            // Jika balasan dikirim oleh userToDelete ATAU balasan itu ditujukan untuk menfess dari userToDelete
+            if (reply.getReplier().equals(userToDelete) || reply.getOriginalConfession().getUser().equals(userToDelete)) {
+                replyIterator.remove();
+            }
+        }
+
+        // 4. Hapus userToDelete dari daftarUser global
+        daftarUser.remove(userToDelete);
+
+        // 5. Jika akun yang dihapus adalah akun yang sedang login, paksa logout
+        if (currentUser != null && currentUser.equals(userToDelete)) {
+            currentUser = null;
+            System.out.println("Akun Anda telah dihapus. Anda telah logout.");
+        }
+    }
+
+    // --- Metode Helper: findUserByUsername (Jika belum ada) ---
+    public static User findUserByUsername(String username) {
+        for (User user : daftarUser) {
+            if (user.getUsername().equalsIgnoreCase(username)) {
+                return user;
+            }
+        }
+        return null;
+    }
+
+    // --- Metode lain di TP4 (main, login, register, dll.) ---
+    // ...
+}
