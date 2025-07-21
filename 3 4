@@ -1,0 +1,26 @@
+09.3. Buat unit test
+Dapatkah anda membuat unit test untuk menguji implementasi anda terkait
+membaca dan menulis highscore ini? (Gunakan junit.jupiter. Anda bisa melihat
+contoh program ReadDataTest.java )
+
+09.4. Method untuk menampilkan highscore
+Buatlah method yang akan menampilkan highscore. Tentunya bila ingin ditunjukan
+kepada pengguna, sebaiknya ditampilkan secara terurut. Membesar berdasarkan
+nilai dan tuliskan urutannya. Bila nilainya sama maka urutan harus sama. Kemudian
+nomor selanjutnya mengikuti nomor sesuai urutan peserta. Sehingga bila mengacu
+pada contoh berkas sebelumnya output yang diharapkan adalah:
+Highscore saat ini adalah:
+1. Allen 4
+2. Jim 2
+3. Erick 1
+4. Diana 1
+Contoh output lain:
+Highscore saat ini adalah:
+1. Allen 4
+2. Jim 3
+3. Erick 2
+3. Diana 2
+5. Franny 1
+Nomor selanjutnya Franny, karena sudah berbeda, maka mendapat nomor urut 5,
+bukan 4 karena nomor urut 4 sudah dipakai Diana namun yang di-cetak adalah 3
+karena nilai Diana sama dengan Erick.
