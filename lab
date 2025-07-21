@@ -1,0 +1,138 @@
+Lanjutkan dari pengerjaan TP4 Anda.
+
+Bila Anda belum mengerjakan TP4 sama sekali, silakan temui dosen.
+
+Lakukan git clone dari repositori GitHub Classroom ke komputer lokal di lab. Mulailah pekerjaan Anda dari sana.
+
+Praktikum ini wajib langsung didemokan ke asisten dosen (asdos) hari ini juga. Tanpa demo, Anda tidak mendapatkan nilai. Anda juga harus menuliskan essay singkat (<200 kata) tentang bagaimana Anda mengerjakan TP4 dan tambahan soal ini.
+
+Tugas Anda
+
+Menghapus akun secara menyeluruh dari sistem, termasuk dari data login, daftar pengguna, daftar followers dan following, serta semua relasi atau data yang terkait dengan akun tersebut.
+
+Membuat fitur yang memungkinkan penerima (Cosmic) membalas pesan confession, tanpa mengungkap identitas pengirim yang tetap anonim.
+
+Membuat fitur yang memungkinkan pengirim, melihat seluruh balasan terhadap confession yang mereka kirim. Balasan hanya bisa dibaca, tidak dapat dibalas kembali.
+
+Luaran Program
+
+Berikut ini adalah contoh luaran program.
+
+// Pada menu Admin
+
+Pilih salah satu menu kami!
+
+1. Melihat Daftar Pengguna
+
+2. Reset Password Pengguna
+
+3. Sembunyikan Menfess
+
+4. Tampilkan Kembali Menfess
+
+5. Hapus Akun
+
+5. Logout
+
+6. End Game
+
+
+Masukkan pilihanmu: 5
+
+Masukkan akun yang ingin dihapus: grace
+
+Akun berhasil terhapus
+
+
+// Saat akun pengguna dihapus seluruh data yang berkaitan dengan akun tersebut akan ikut terhapus. Pengguna tidak akan bisa login kembali, namanya hilang dari daftar pengguna (termasuk dari tampilan admin), serta tidak akan muncul lagi di daftar followers maupun following milik pengguna lain. Selain itu, semua menfess yang pernah dikirim atau diterima juga akan dihapus sehingga tidak muncul lagi di daftar menfess. 
+
+ 
+
+// Pengirim telah mengirim pesan confession ke penerima dan program memasuki akun Penerima
+
+Pilih salah satu menu kami!
+
+1. Follow pengguna lain
+
+2. Mengirim menfess
+
+3. Melihat daftar followers dan following
+
+4. Melihat daftar Menfess
+
+5. Ubah password
+
+6. Logout
+
+7. End Game
+
+Masukkan pilihanmu: 4
+
+
+Pilih salah satu daftar menfess!
+
+1. Semua Menfess
+
+2. Menfess Buat Kamu
+
+3. Menfess Balasan Buat Kamu
+
+Masukkan pilihanmu: 2
+
+== Semua Menfess Confession Untuk Kamu ==
+
+[1][Confession] oleh anonim: "cantik"
+
+Waktu kirim: 2025-07-20 21:09:56
+
+
+[2][Confession] oleh anonim: “aku sebenernya mau deketin… hehe”
+
+Waktu kirim: 2025-07-20 21:10:12
+
+
+Pilih nomor confession yang ingin dibalas: 1
+
+Tulis balasan kamu: thanks
+
+Balasan berhasil dikirim ke pengirim.
+
+
+// Balasan berhasil dikirim dan program memasuki Akun Pengirim 
+
+Pilih salah satu menu kami!
+
+1. Follow pengguna lain
+
+2. Mengirim menfess
+
+3. Melihat daftar followers dan following
+
+4. Melihat daftar Menfess
+
+5. Ubah password
+
+6. Logout
+
+7. End Game
+
+Masukkan pilihanmu: 4
+
+
+Pilih salah satu daftar menfess!
+
+1. Semua Menfess
+
+2. Menfess Buat Kamu
+
+3. Menfess Balasan Buat Kamu
+
+Masukkan pilihanmu: 3
+
+== Semua Balasan Confession Buat Kamu ==
+
+[Balasan untuk Confession: "cantik"]
+
+oleh Cosmic (penerima): "thanks"
+
+Waktu balas: 2025-07-20 21:10:33
