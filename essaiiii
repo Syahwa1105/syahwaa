@@ -1,0 +1,13 @@
+Konsep Inheritance (Cosmic dan Admin):
+
+Aku menerapkan inheritance dengan membuat User sebagai kelas dasar. Dari User ini, aku menurunkan kelas Cosmic dan Admin. Ini artinya Cosmic dan Admin mewarisi semua sifat dan perilaku dasar dari User (misalnya username, password, follow/unfollow). Tapi, mereka juga punya perilaku khusus sendiri, Admin bisa reset password atau sembunyikan menfess, sementara Cosmic bisa mengirim menfess.
+
+Pendekatan ini jauh lebih efektif daripada pakai satu kelas User dengan banyak if-else. Kalau pakai if-else, kode jadi panjang, sulit dibaca, dan susah diurus kalau ada perubahan atau penambahan fitur baru. Dengan inheritance, kode lebih rapi, terorganisir, dan gampang dikembangkan.
+
+Konsep Polymorphism (Tipe Fess):
+
+Aku menggunakan polymorphism untuk menangani berbagai tipe fess (ConfessFess, CurhatFess, PromosiFess). Mereka semua adalah "bentuk" dari kelas dasar Menfess. Setiap tipe fess ini punya cara menampilkan dirinya sendiri yang berbeda melalui metode displayFess().
+
+Misalnya, ConfessFess akan menambahkan tanda kutip pada pesannya, PromosiFess akan menambahkan awalan "Promosi produk...", dan CurhatFess menampilkan pesan polos.
+
+Dengan polymorphism, saat aku menampilkan daftar menfess, aku cuma perlu memanggil menfess.displayFess(). Java otomatis tahu displayFess() mana yang harus dipanggil sesuai dengan jenis menfess-nya. Ini bikin sistem fleksibel banget, aku nggak perlu if-else buat cek tiap tipe fess pas mau nampilin, dan kalau ada tipe fess baru, tinggal buat kelas barunya tanpa ngubah kode tampilan yang sudah ada.
